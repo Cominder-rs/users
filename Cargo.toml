@@ -21,4 +21,4 @@ rand = "0.8"
 time = { version = "0.3", features = ["serde-well-known"] }
 chrono = "0.4"
 uuid = { version = "1.1", features = ["v4", "fast-rng"] }
-users-entities = { path = "./entities" }
+users_entities = { path = "./entities" }

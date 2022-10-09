@@ -7,7 +7,7 @@ use tower_http::trace::TraceLayer;
 use sea_orm::DatabaseConnection;
 
 use api::v1::get_api;
-use civilization::{init_service::init_service, common_structs::Env};
+use civilization::{common_structs::Env, init_service::init_service};
 
 mod api;
 mod db;
@@ -20,7 +20,6 @@ pub struct AppState {
 
 #[tokio::main]
 async fn main() {
-
     let (env, ..) = init_service();
 
     let db_conn = db::init_conn(&env).await;
@@ -31,7 +30,6 @@ async fn main() {
         .nest("/api/v1", get_api())
         .layer(TraceLayer::new_for_http())
         .layer(Extension(app_state));
-
 
     let addr = SocketAddr::from_str("127.0.0.1:8080").expect("Invalid URL passed");
 
