@@ -9,7 +9,7 @@ pub async fn init_db(env: Env) -> DatabaseConnection {
             let user = "vaider";
             let password = "a44668631";
             let host = "localhost";
-            let database = "users_service";
+            let database = "users";
 
             format!("postgres://{user}:{password}@{host}:5432/{database}")
         }
@@ -17,7 +17,7 @@ pub async fn init_db(env: Env) -> DatabaseConnection {
             let user = "vaider";
             let password = "a44668631";
             let host = "localhost";
-            let database = "users_service";
+            let database = "users";
 
             format!("postgres://{user}:{password}@{host}:5432/{database}")
         }
