@@ -1,28 +1,35 @@
 mod api;
+mod utils;
+
+
 
 use tonic::{transport::Server, Request, Response, Status};
 
 use users::users_server::{Users, UsersServer};
-use users::{HelloReply, HelloRequest, CodeRequest, Empty};
+use users::{CodeRequest, Empty, HelloReply, HelloRequest};
 
 use tonic_web::GrpcWebLayer;
 use tower_http::cors::{Any, CorsLayer};
-use civilization::scopes;
 
+use ip2location::DB;
 
 pub mod users {
     tonic::include_proto!("users"); // The string specified here must match the proto package name
 }
+
+const IPV4BIN: &str = "assets/IP2LOCATION-LITE-DB1.BIN";
 
 #[derive(Debug, Default)]
 pub struct MyUsers {}
 
 #[tonic::async_trait]
 impl Users for MyUsers {
-
-    async fn say_hello(&self, request: Request<HelloRequest>) -> Result<Response<HelloReply>, Status> {
+    async fn say_hello(
+        &self,
+        request: Request<HelloRequest>,
+    ) -> Result<Response<HelloReply>, Status> {
+        println!("{:#?}", request);
         let name = request.into_inner().name;
-
         let response = HelloReply {
             message: format!("Hello, {name}"),
         };
@@ -31,24 +38,28 @@ impl Users for MyUsers {
     }
 
     // #[scopes]
-    async fn send_code(
-        &self,
-        request: Request<CodeRequest>,
-    ) -> Result<Response<Empty>, Status> {
+    async fn send_code(&self, request: Request<CodeRequest>) -> Result<Response<Empty>, Status> {
         let CodeRequest { phone_number } = request.into_inner();
-
+        println!("Log");
         println!("hui");
         Ok(Response::new(Empty {}))
     }
 }
 
 #[tokio::main]
-async fn main () -> Result<(), Box<dyn std::error::Error>> {
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
     tracing_subscriber::fmt()
         .with_max_level(tracing::Level::INFO)
         .init();
 
-    let addr = "127.0.0.1:50051".parse()?;
+    let ip_db = Box::new(DB::from_file(IPV4BIN).unwrap());
+    let mut ip_db: &'static mut DB = Box::leak(ip_db);
+
+    let result = utils::ip_v4_lookup("84.17.60.251", ip_db).unwrap();
+
+    println!("{}", result.country.unwrap().short_name);
+
+    let addr = "127.0.0.1:7777".parse()?;
     let users = MyUsers::default();
 
     let cors = CorsLayer::new()
