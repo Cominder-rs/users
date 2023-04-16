@@ -2,6 +2,7 @@ syntax = "proto3";
 package users;
 
 service Users {
+//  rpc GetCountry ()
   rpc SayHello (HelloRequest) returns (HelloReply) {};
   rpc SendCode (CodeRequest) returns (Empty) {};
 }
