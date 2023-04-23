@@ -1,0 +1,41 @@
+syntax = "proto3";
+import "google/protobuf/empty.proto";
+package users;
+
+
+service Users {
+
+  rpc GetCountry (google.protobuf.Empty) returns (Country) {}
+  rpc SendPhoneNumber (PhoneNumber) returns (google.protobuf.Empty) {}
+}
+
+message PhoneNumber {
+  string phone_number = 1;
+}
+
+message Country {
+  CountryCode code = 1;
+} 
+
+enum CountryCode {
+  UNKNOWN = 0;
+  AT = 40;
+  BY = 112;
+  BE = 56;
+  CA = 124;
+  CN = 156;
+  DK = 208;
+  DE = 276;
+  FI = 246;
+  FR = 250;
+  GB = 826;
+  GE = 268;
+  IN = 356;
+  ID = 360;
+  IT = 380;
+  JP = 392;
+  KZ = 398;
+  RU = 643;
+  TR = 792;
+  UA = 804;
+}

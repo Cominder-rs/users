@@ -1,9 +1,20 @@
-use ip2location::{error, DB, Record, LocationRecord};
+use std::net::SocketAddr;
 
-pub fn ip_v4_lookup(ip_addr: &str, db: &'static mut DB) -> Result<LocationRecord, error::Error> {
-    let record = db.ip_lookup(ip_addr.parse().unwrap())?;
+use ip2location::{error, Record};
+use users_proto::CountryCode;
+use crate::middlewares::IpDB;
+
+pub fn find_country(ip_addr: Option<SocketAddr>, db: IpDB) -> Result<CountryCode, error::Error> {
+    let mut db = db.lock().unwrap();
+    let ip_addr = ip_addr.ok_or(error::Error::RecordNotFound)?;
+    let ip_addr = ip_addr.ip();
+    let record = db.ip_lookup(ip_addr)?;
     if let Record::LocationDb(rec) = record {
-        Ok(rec)
+        if let Some(country) = rec.country {
+            Ok(country.short_name.into())
+        } else {
+            Err(error::Error::RecordNotFound)
+        }
     } else {
         Err(error::Error::RecordNotFound)
     }

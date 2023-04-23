@@ -1,0 +1,19 @@
+[package]
+name = "users_proto"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+# tonic = { workspace = true }
+tonic = { version = "0.9", default-features = false, features = ["codegen", "prost"] }
+prost = { workspace = true }
+leptos = { version = "0.2" }
+
+[build-dependencies]
+tonic-build = { workspace = true }
+
+[features]
+client = []
+server = []

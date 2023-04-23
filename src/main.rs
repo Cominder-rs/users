@@ -1,77 +1,43 @@
+pub mod utils;
 mod api;
-mod utils;
+mod middlewares;
 
-
-
-use tonic::{transport::Server, Request, Response, Status};
-
-use users::users_server::{Users, UsersServer};
-use users::{CodeRequest, Empty, HelloReply, HelloRequest};
+use tonic::{transport::Server, Request, Status};
 
 use tonic_web::GrpcWebLayer;
 use tower_http::cors::{Any, CorsLayer};
 
-use ip2location::DB;
+use middlewares::AppDataMiddlewareLayer;
+use api::v1::users::UsersApi;
 
-pub mod users {
-    tonic::include_proto!("users"); // The string specified here must match the proto package name
-}
-
-const IPV4BIN: &str = "assets/IP2LOCATION-LITE-DB1.BIN";
-
-#[derive(Debug, Default)]
-pub struct MyUsers {}
-
-#[tonic::async_trait]
-impl Users for MyUsers {
-    async fn say_hello(
-        &self,
-        request: Request<HelloRequest>,
-    ) -> Result<Response<HelloReply>, Status> {
-        println!("{:#?}", request);
-        let name = request.into_inner().name;
-        let response = HelloReply {
-            message: format!("Hello, {name}"),
-        };
-
-        Ok(Response::new(response))
-    }
-
-    // #[scopes]
-    async fn send_code(&self, request: Request<CodeRequest>) -> Result<Response<Empty>, Status> {
-        let CodeRequest { phone_number } = request.into_inner();
-        println!("Log");
-        println!("hui");
-        Ok(Response::new(Empty {}))
-    }
-}
+use users_proto::{users_server::UsersServer};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     tracing_subscriber::fmt()
         .with_max_level(tracing::Level::INFO)
         .init();
+    let addr = "192.168.0.103:50501".parse()?;
 
-    let ip_db = Box::new(DB::from_file(IPV4BIN).unwrap());
-    let mut ip_db: &'static mut DB = Box::leak(ip_db);
-
-    let result = utils::ip_v4_lookup("84.17.60.251", ip_db).unwrap();
-
-    println!("{}", result.country.unwrap().short_name);
-
-    let addr = "127.0.0.1:7777".parse()?;
-    let users = MyUsers::default();
+    let users_api = UsersApi {};
 
     let cors = CorsLayer::new()
         .allow_origin(Any)
         .allow_headers(Any)
         .allow_methods(Any);
 
+    let service = UsersServer::new(users_api);
+
+    let layer = tower::ServiceBuilder::new()
+        .layer(AppDataMiddlewareLayer::default())
+        .into_inner();
+
     Server::builder()
         .accept_http1(true)
         .layer(cors)
         .layer(GrpcWebLayer::new())
-        .add_service(UsersServer::new(users))
+        .layer(layer)
+        .add_service(service)
         .serve(addr)
         .await?;
 

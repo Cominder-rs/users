@@ -6,27 +6,26 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-tokio = { version = "1.20", features = ["full"] }
-tower-http = { version = "0.3", features = ["trace", "cors"] }
-http = "0.2"
-tracing = "0.1"
-tracing-subscriber = { version = "0.3", features = ["env-filter"] }
-dotenv = "0.15"
-sea-orm = { version = "0.9", features = ["runtime-tokio-rustls", "serde_json", "macros", "sqlx-postgres", "time"] }
-serde = "1"
-serde_json = "1"
-validator = { version = "0.16", features = ["phone", "derive"]}
+tokio = { workspace = true }
+tower-http = { workspace = true }
+http = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+dotenvy = { workspace = true }
+sea-orm = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+validator = { workspace = true }
 civilization = { path = "../../civilization" }
-rand = "0.8"
-time = { version = "0.3", features = ["serde-well-known"] }
-chrono = "0.4"
-uuid = { version = "1.1", features = ["v4", "fast-rng"] }
+rand = { workspace = true }
+time = { workspace = true }
+uuid = { workspace = true }
 users_entities = { path = "./entities" }
-#tower-http = { version = "0.3", features = ["cors"] }
 ip2location = "0.3"
-tonic = "0.8"
-prost = "0.11"
-tonic-web = "0.5"
-
-[build-dependencies]
-tonic-build = "0.8"
+tonic = { workspace = true }
+prost = { workspace = true }
+tonic-web = { workspace = true }
+users_proto = { path = "./proto", features = ["server"]}
+hyper = { workspace = true }
+futures = { workspace = true }
+tower = { workspace = true }
