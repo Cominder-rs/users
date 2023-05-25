@@ -13,6 +13,8 @@ leptos = { version = "0.2" }
 
 [build-dependencies]
 tonic-build = { workspace = true }
+protobuf-src = { workspace = true }
+cfg-if = { workspace = true }
 
 [features]
 client = []

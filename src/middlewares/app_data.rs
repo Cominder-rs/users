@@ -8,7 +8,7 @@ use tower::{Service, Layer};
 
 use ip2location::DB;
 
-const IPV4BIN: &str = "assets/IP2LOCATION-LITE-DB1.BIN";
+const IPV4BIN: &str = "services/users/assets/IP2LOCATION-LITE-DB1.BIN";
 
 #[derive(Debug, Clone, Default)]
 pub struct AppDataMiddlewareLayer;
