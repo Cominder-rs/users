@@ -30,13 +30,18 @@ impl MigrationTrait for Migration {
                     .col(ColumnDef::new(LoginSessions::Code).string().not_null())
                     .col(
                         ColumnDef::new(LoginSessions::ExpireAt)
-                            .timestamp_with_time_zone()
+                            .big_integer()
                             .not_null(),
                     )
                     .col(
                         ColumnDef::new(LoginSessions::SentAt)
-                            .timestamp_with_time_zone()
+                            .big_integer()
                             .not_null(),
+                    )
+                    .col(
+                        ColumnDef::new(LoginSessions::Attempts)
+                            .small_integer()
+                            .not_null()
                     )
                     .to_owned(),
             )
@@ -58,4 +63,5 @@ pub enum LoginSessions {
     Code,
     ExpireAt,
     SentAt,
+    Attempts,
 }

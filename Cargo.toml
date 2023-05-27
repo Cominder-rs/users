@@ -32,3 +32,4 @@ civilization = { path = "../../civilization" }
 users_entities = { path = "./entities" }
 users_proto = { path = "./proto", features = ["server"]}
 ip2location = "0.3"
+parking_lot = "0.12.1"

@@ -1,29 +1,29 @@
+use civilization::common_structs::Env;
+use sea_orm::DatabaseConnection;
 use tonic::body::BoxBody;
 use hyper::Body;
 use std::task::{Context, Poll};
-use std::sync::{Mutex, Arc};
+use std::sync::Arc;
+use parking_lot::Mutex;
 
-pub type IpDB = Arc<Mutex<DB>>;
 use tower::{Service, Layer};
-
 use ip2location::DB;
 
-const IPV4BIN: &str = "services/users/assets/IP2LOCATION-LITE-DB1.BIN";
 
-#[derive(Debug, Clone, Default)]
-pub struct AppDataMiddlewareLayer;
+pub type IpDB = Arc<Mutex<DB>>;
+
+#[derive(Debug, Clone)]
+pub struct AppDataMiddlewareLayer {
+    pub env: Env,
+    pub ip_db: IpDB,
+    pub db: DatabaseConnection
+}
 
 impl <S> Layer<S> for AppDataMiddlewareLayer {
     type Service = AppDataMiddleware<S>;
 
     fn layer(&self, service: S) -> Self::Service {
-        let ip_db = DB::from_file(IPV4BIN).expect("Openin ip adresses DB file");
-        let ip_db = Arc::new(Mutex::new(ip_db));
-
-        let app_data = AppData {
-            ip_db
-        };
-        AppDataMiddleware { inner: service, app_data }
+        AppDataMiddleware { inner: service, app_data: AppData { ip_db: self.ip_db.clone(), db: self.db.clone() } }
     }
 }
 
@@ -37,6 +37,7 @@ pub struct AppDataMiddleware<S> {
 #[derive(Clone)]
 pub struct AppData {
     pub ip_db: IpDB,
+    pub db: DatabaseConnection
 }
 
 impl <S> Service<hyper::Request<Body>> for AppDataMiddleware<S>
@@ -53,6 +54,9 @@ where
     }
 
     fn call(&mut self, mut req: hyper::Request<Body>) -> Self::Future {
+        let new_uri = req.uri().to_string();
+        let new_uri = new_uri.strip_prefix("/api/users").unwrap();
+        *req.uri_mut() = new_uri.parse().unwrap();
         // This is necessary because tonic internally uses `tower::buffer::Buffer`.
         // See https://github.com/tower-rs/tower/issues/547#issuecomment-767629149
         // for details on why this is necessary

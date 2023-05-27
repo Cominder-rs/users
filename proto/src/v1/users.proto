@@ -7,6 +7,7 @@ service Users {
 
   rpc GetCountry (google.protobuf.Empty) returns (Country) {}
   rpc SendPhoneNumber (PhoneNumber) returns (google.protobuf.Empty) {}
+  rpc SendPhoneNumberDev (PhoneNumber) returns (SentCode) {}
 }
 
 message PhoneNumber {
@@ -16,6 +17,10 @@ message PhoneNumber {
 message Country {
   CountryCode code = 1;
 } 
+
+message SentCode {
+  string code = 1;
+}
 
 enum CountryCode {
   UNKNOWN = 0;
