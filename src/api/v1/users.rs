@@ -2,14 +2,14 @@ use crate::{
     middlewares::AppData,
     utils,
 };
-use civilization::utils::{validate_regex, validate_vec_regex};
+use civilization::utils::{validate_regex};
 use ::users_proto::{auth_server::Auth, *};
 use beijing::*;
-use civilization::{common_structs::Env, utils::unix_now};
-use http::status::InvalidStatusCode;
+use civilization::{common_structs::Env};
+
 use rand::{self, Rng};
 use sea_orm::{prelude::*, sea_query::OnConflict, Set};
-use std::time::Duration;
+
 use tonic::{Request, Response, Status};
 use tracing::*;
 use users_entities::{
@@ -17,7 +17,7 @@ use users_entities::{
     user::{self, Entity as User},
 };
 use users_errors::*;
-use validator::{validate_does_not_contain, validate_length, validate_must_match, validate_phone};
+use validator::{validate_phone};
 
 pub struct AuthApi;
 
@@ -164,7 +164,7 @@ impl Auth for AuthApi {
 
     async fn send_phone_number(
         &self,
-        request: Request<PhoneNumber>,
+        _request: Request<PhoneNumber>,
     ) -> Result<Response<()>, Status> {
         Err(Status::unimplemented("Unimplemented"))
         // let AppData { ref db, .. } = request.extensions().get::<AppData>().unwrap();

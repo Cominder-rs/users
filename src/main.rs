@@ -8,9 +8,9 @@ use std::{sync::Arc, time::Duration};
 use civilization::init_service;
 use http::{HeaderName, HeaderValue};
 use parking_lot::Mutex;
-use tonic::{transport::Server, Request, metadata::MetadataValue, Status, Response};
+use tonic::{transport::Server, Request, Status, Response};
 use tonic_web::GrpcWebLayer;
-use tower_http::cors::{AllowOrigin, Any, CorsLayer};
+use tower_http::cors::{CorsLayer};
 
 use api::v1::users::AuthApi;
 use middlewares::AppDataMiddlewareLayer;
@@ -31,7 +31,7 @@ struct PermissionsApi;
 
 #[tonic::async_trait]
 impl Permissions for PermissionsApi {
-    async fn test(&self, req: Request<()>) -> Result<Response<()>, Status> {
+    async fn test(&self, _req: Request<()>) -> Result<Response<()>, Status> {
         Ok(Response::new(()))
     }
     
@@ -103,7 +103,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 fn chech_auth(req: Request<()>) -> Result<Request<()>, Status> {
     match req.metadata().get("Authorization") {
         Some(t) => {
-            let token = t.to_str().map_err(|_| Status::unauthenticated(""))?;
+            let _token = t.to_str().map_err(|_| Status::unauthenticated(""))?;
             
             Ok(req)
         }
