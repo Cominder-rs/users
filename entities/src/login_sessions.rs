@@ -12,6 +12,7 @@ pub struct Model {
     pub expire_at: i64,
     pub sent_at: i64,
     pub attempts: i16,
+    pub random_key: String,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]

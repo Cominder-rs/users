@@ -24,7 +24,7 @@ impl MigrationTrait for Migration {
                             .auto_increment()
                             .primary_key(),
                     )
-                    .col(ColumnDef::new(User::Username).string().unique_key())
+                    .col(ColumnDef::new(User::Username).string().unique_key().not_null().string_len(20))
                     .col(ColumnDef::new(User::Password).string())
                     .col(
                         ColumnDef::new(User::PhoneNumber)
@@ -32,11 +32,9 @@ impl MigrationTrait for Migration {
                             .not_null()
                             .unique_key(),
                     )
-                    .col(ColumnDef::new(User::Firstname).string().not_null())
-                    .col(ColumnDef::new(User::Lastname).string().not_null())
-                    .col(ColumnDef::new(User::Sex).string())
-                    .col(ColumnDef::new(User::DateOfBirth).date())
-                    .col(ColumnDef::new(User::City).string())
+                    .col(ColumnDef::new(User::Firstname).string().not_null().string_len(30))
+                    .col(ColumnDef::new(User::Lastname).string().not_null().string_len(30))
+                    .col(ColumnDef::new(User::City).string().not_null().string_len(30))
                     .to_owned(),
             )
             .await
@@ -58,7 +56,5 @@ pub enum User {
     Password,
     Firstname,
     Lastname,
-    Sex,
-    DateOfBirth,
     City,
 }

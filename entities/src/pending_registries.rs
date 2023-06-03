@@ -3,18 +3,12 @@
 use sea_orm::entity::prelude::*;
 
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq)]
-#[sea_orm(table_name = "user")]
+#[sea_orm(table_name = "pending_registries")]
 pub struct Model {
     #[sea_orm(primary_key)]
     pub id: i64,
-    #[sea_orm(unique)]
-    pub username: String,
-    pub password: Option<String>,
-    #[sea_orm(unique)]
+    pub random_key: String,
     pub phone_number: String,
-    pub firstname: String,
-    pub lastname: String,
-    pub city: String,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]

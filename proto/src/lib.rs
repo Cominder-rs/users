@@ -1,5 +1,5 @@
 pub mod users_proto {
-    tonic::include_proto!("users");
+    tonic::include_proto!("auth");
 }
 
 pub use users_proto::*;

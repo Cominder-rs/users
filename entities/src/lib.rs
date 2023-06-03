@@ -3,4 +3,5 @@
 pub mod prelude;
 
 pub mod login_sessions;
+pub mod pending_registries;
 pub mod user;

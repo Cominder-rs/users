@@ -2,6 +2,7 @@ pub use sea_orm_migration::prelude::*;
 
 mod m20220101_000001_create_users_table;
 mod m20220726_113009_create_login_session;
+mod m20230602_040241_create_pending_registry;
 
 pub struct Migrator;
 
@@ -11,6 +12,7 @@ impl MigratorTrait for Migrator {
         vec![
             Box::new(m20220101_000001_create_users_table::Migration),
             Box::new(m20220726_113009_create_login_session::Migration),
+            Box::new(m20230602_040241_create_pending_registry::Migration),
         ]
     }
 }

@@ -43,6 +43,12 @@ impl MigrationTrait for Migration {
                             .small_integer()
                             .not_null()
                     )
+                    .col(
+                        ColumnDef::new(LoginSessions::RandomKey)
+                            .string()
+                            .string_len(32)
+                            .not_null()
+                    )
                     .to_owned(),
             )
             .await
@@ -64,4 +70,5 @@ pub enum LoginSessions {
     ExpireAt,
     SentAt,
     Attempts,
+    RandomKey,
 }

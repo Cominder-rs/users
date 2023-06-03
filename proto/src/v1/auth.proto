@@ -1,0 +1,74 @@
+syntax = "proto3";
+import "google/protobuf/empty.proto";
+package auth;
+
+
+service Auth {
+  rpc GetCountry (google.protobuf.Empty) returns (Country) {}
+  rpc SendPhoneNumber (PhoneNumber) returns (google.protobuf.Empty) {}
+  rpc SendPhoneNumberDev (PhoneNumber) returns (CodeRandomKey) {}
+  rpc SendConfirmationCode (ConfirmationCode) returns (RegistryStatus) {}
+  rpc CreateUser (NewUser) returns (Token) {}
+}
+
+message NewUser {
+  string username = 1;
+  string firstname = 2;
+  string lastname = 3;
+  string city = 4;
+}
+
+message Token {
+  string token = 1;
+}
+
+message CodeRandomKey {
+  string code = 1;
+  string random_key = 2;
+}
+
+message RegistryStatus {
+  bool is_done = 1;
+  optional string random_key = 2;
+  optional string token = 3;
+}
+
+message ConfirmationCode {
+  string code = 1;
+  string random_key = 2;
+}
+
+message PhoneNumber {
+  string phone_number = 1;
+}
+
+message Country {
+  CountryCode code = 1;
+} 
+
+message SentCode {
+  string code = 1;
+}
+
+enum CountryCode {
+  UNKNOWN = 0;
+  AT = 40;
+  BY = 112;
+  BE = 56;
+  CA = 124;
+  CN = 156;
+  DK = 208;
+  DE = 276;
+  FI = 246;
+  FR = 250;
+  GB = 826;
+  GE = 268;
+  IN = 356;
+  ID = 360;
+  IT = 380;
+  JP = 392;
+  KZ = 398;
+  RU = 643;
+  TR = 792;
+  UA = 804;
+}

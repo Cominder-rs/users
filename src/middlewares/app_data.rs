@@ -23,7 +23,7 @@ impl <S> Layer<S> for AppDataMiddlewareLayer {
     type Service = AppDataMiddleware<S>;
 
     fn layer(&self, service: S) -> Self::Service {
-        AppDataMiddleware { inner: service, app_data: AppData { ip_db: self.ip_db.clone(), db: self.db.clone() } }
+        AppDataMiddleware { inner: service, app_data: AppData { ip_db: self.ip_db.clone(), db: self.db.clone(), env: self.env } }
     }
 }
 
@@ -37,7 +37,8 @@ pub struct AppDataMiddleware<S> {
 #[derive(Clone)]
 pub struct AppData {
     pub ip_db: IpDB,
-    pub db: DatabaseConnection
+    pub db: DatabaseConnection,
+    pub env: Env,
 }
 
 impl <S> Service<hyper::Request<Body>> for AppDataMiddleware<S>

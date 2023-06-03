@@ -1,0 +1,7 @@
+syntax = "proto3";
+import "google/protobuf/empty.proto";
+package auth;
+
+service Permissions {
+  rpc Test (google.protobuf.Empty) returns (google.protobuf.Empty) {}
+}

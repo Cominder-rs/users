@@ -6,7 +6,6 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-# replace start
 tokio = { workspace = true }
 tokio-stream = { workspace = true }
 tower-http = { workspace = true }
@@ -27,9 +26,11 @@ tonic-web = { workspace = true }
 hyper = { workspace = true }
 futures = { workspace = true }
 tower = { workspace = true }
-# replace end 
-civilization = { path = "../../civilization" }
-users_entities = { path = "./entities" }
-users_proto = { path = "./proto", features = ["server"]}
+civilization = { workspace = true }
+users_entities = { workspace = true }
+users_proto = { workspace = true, features = ["server"]}
+users_errors = { workspace = true }
+beijing = { workspace = true }
+fancy-regex = { workspace = true }
 ip2location = "0.3"
 parking_lot = "0.12.1"
