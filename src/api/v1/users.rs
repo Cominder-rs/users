@@ -1,23 +1,22 @@
-use crate::{
-    middlewares::AppData,
-    utils,
-};
-use civilization::utils::{validate_regex};
+use crate::{middlewares::AppData, utils};
+use http::uri::Authority;
 use ::users_proto::{auth_server::Auth, *};
 use beijing::*;
-use civilization::{common_structs::Env};
-
+use civilization::utils::{make_internal, validate_regex, validate_vec_regex};
+use civilization::{common_structs::Env, utils::unix_now};
+use http::status::InvalidStatusCode;
 use rand::{self, Rng};
 use sea_orm::{prelude::*, sea_query::OnConflict, Set};
-
+use std::time::Duration;
 use tonic::{Request, Response, Status};
 use tracing::*;
 use users_entities::{
     login_sessions::{self, ActiveModel as NewLoginSession, Entity as LoginSession},
+    pending_registries::{self, ActiveModel as NewPendingRegistry, Entity as PendingRegistry},
     user::{self, Entity as User},
 };
 use users_errors::*;
-use validator::{validate_phone};
+use validator::{validate_does_not_contain, validate_length, validate_must_match, validate_phone};
 
 pub struct AuthApi;
 
@@ -35,8 +34,19 @@ impl Auth for AuthApi {
             firstname,
             lastname,
             city,
+            random_key,
+            ..
         } = request.into_inner();
-        let regex = r"^(\p{L}(?<!\s)\s?){0,30}$";
+
+        let pending_registry = PendingRegistry::find()
+            .filter(pending_registries::Column::RandomKey.eq(random_key))
+            .one(&db)
+            .await
+            .map_err(make_internal)?
+            .ok_or(Status::invalid_argument(AuthError::PendingRegistryNotFound.to_string()))?;
+
+
+        let regex = r"^(\p{L}(?<!\s)\s?){2,30}$";
         validate_regex(&username, regex)
             .map_err(|_| Status::invalid_argument(AuthError::InvalidUsername.to_string()))?;
         validate_regex(&firstname, regex)
@@ -51,6 +61,7 @@ impl Auth for AuthApi {
             firstname: Set(firstname),
             lastname: Set(lastname),
             city: Set(city),
+            phone_number: Set(pending_registry.phone_number),
             ..Default::default()
         };
 
@@ -66,16 +77,14 @@ impl Auth for AuthApi {
                 if let DbErr::RecordNotInserted = e {
                     Status::already_exists(AuthError::UsernameBusy.to_string())
                 } else {
-                    Status::internal("")
+                    make_internal(e)
                 }
             })?
             .last_insert_id;
 
         let claims = Claims::new(new_user_id, None, Scope::all());
-        let token = encode_token(&claims).map_err(|_| Status::internal(""))?;
-        Ok(Response::new(Token {
-            token
-        }))
+        let token = encode_token(&claims).map_err(make_internal)?;
+        Ok(Response::new(Token { token }))
     }
 
     async fn get_country(&self, request: Request<()>) -> Result<Response<Country>, Status> {
@@ -129,7 +138,7 @@ impl Auth for AuthApi {
         }
 
         let user = User::find()
-            .filter(user::Column::PhoneNumber.eq(login_session.phone_number))
+            .filter(user::Column::PhoneNumber.eq(&login_session.phone_number))
             .one(db)
             .await
             .map_err(|_| Status::internal("Internal"))?;
@@ -153,6 +162,14 @@ impl Auth for AuthApi {
                     CHARSET[idx] as char
                 })
                 .collect::<String>();
+            pending_registries::ActiveModel {
+                phone_number: Set(login_session.phone_number),
+                random_key: Set(random_key.clone()),
+                ..Default::default()
+            }
+            .save(db)
+            .await
+            .map_err(make_internal)?;
 
             Ok(Response::new(RegistryStatus {
                 is_done: false,
@@ -164,7 +181,7 @@ impl Auth for AuthApi {
 
     async fn send_phone_number(
         &self,
-        _request: Request<PhoneNumber>,
+        request: Request<PhoneNumber>,
     ) -> Result<Response<()>, Status> {
         Err(Status::unimplemented("Unimplemented"))
         // let AppData { ref db, .. } = request.extensions().get::<AppData>().unwrap();
@@ -256,13 +273,8 @@ impl Auth for AuthApi {
             random_key: Set(random_key.clone()),
         };
 
-        let res = new_login_session.insert(db).await;
+        new_login_session.insert(db).await.map_err(make_internal)?;
 
-        if let Err(err) = res {
-            error!("Error insertion new login session {:?}", err);
-            Err(Status::internal("Internal server error"))
-        } else {
-            Ok(Response::new(CodeRandomKey { code, random_key }))
-        }
+        Ok(Response::new(CodeRandomKey { code, random_key }))
     }
 }

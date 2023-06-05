@@ -32,5 +32,6 @@ users_proto = { workspace = true, features = ["server"]}
 users_errors = { workspace = true }
 beijing = { workspace = true }
 fancy-regex = { workspace = true }
+from_str_macro = { workspace = true }
 ip2location = "0.3"
 parking_lot = "0.12.1"

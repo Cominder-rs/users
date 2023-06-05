@@ -16,6 +16,7 @@ message NewUser {
   string firstname = 2;
   string lastname = 3;
   string city = 4;
+  string random_key = 5;
 }
 
 message Token {
