@@ -3,73 +3,28 @@ pub mod db;
 mod middlewares;
 pub mod utils;
 
-use std::{sync::Arc, time::Duration};
+use std::sync::Arc;
 
 use civilization::init_service;
-use http::{HeaderName, HeaderValue};
 use parking_lot::Mutex;
-use tonic::{transport::Server, Request, Status, Response};
+use tonic::{transport::Server, codegen::CompressionEncoding};
 use tonic_web::GrpcWebLayer;
-use tower_http::cors::{CorsLayer};
 
-use api::v1::users::AuthApi;
+
+use api::v1::auth::AuthApi;
 use middlewares::AppDataMiddlewareLayer;
 
-use users_proto::{auth_server::AuthServer, permissions_server::{Permissions, PermissionsServer}};
+use users_proto::{auth_server::AuthServer, users_v1_server::UsersV1Server};
 
-use crate::db::config::init_db;
+use crate::{db::config::init_db, api::v1::users::UsersApiV1};
 
 const IPV4BIN: &str = "services/users/assets/IP2LOCATION-LITE-DB1.BIN";
 
-const DEFAULT_MAX_AGE: Duration = Duration::from_secs(24 * 60 * 60);
-const DEFAULT_EXPOSED_HEADERS: [&str; 3] =
-    ["grpc-status", "grpc-message", "grpc-status-details-bin"];
-const DEFAULT_ALLOW_HEADERS: [&str; 4] =
-    ["x-grpc-web", "content-type", "x-user-agent", "grpc-timeout"];
-
-struct PermissionsApi;
-
-#[tonic::async_trait]
-impl Permissions for PermissionsApi {
-    async fn test(&self, _req: Request<()>) -> Result<Response<()>, Status> {
-        Ok(Response::new(()))
-    }
-    
-}
-
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let env = init_service();
+    let (env, addr, cors_layer) = init_service();
 
-    let pod_ip = std::env::var("POD_IP").unwrap_or("0.0.0.0".to_string());
-
-    let addr = pod_ip + ":80";
-
-    let addr = addr.parse().unwrap();
     let users_api = AuthApi {};
-
-    let cors = CorsLayer::new()
-        .allow_origin(
-            "https://www.constellation-project.ru"
-                .parse::<HeaderValue>()
-                .unwrap(),
-        )
-        .allow_credentials(true)
-        .max_age(DEFAULT_MAX_AGE)
-        .expose_headers(
-            DEFAULT_EXPOSED_HEADERS
-                .iter()
-                .cloned()
-                .map(HeaderName::from_static)
-                .collect::<Vec<HeaderName>>(),
-        )
-        .allow_headers(
-            DEFAULT_ALLOW_HEADERS
-                .iter()
-                .cloned()
-                .map(HeaderName::from_static)
-                .collect::<Vec<HeaderName>>(),
-        );
 
     let ip_db = ip2location::DB::from_file(IPV4BIN).expect("Opening IP2Location file");
 
@@ -79,34 +34,34 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         db: init_db(env).await,
     };
 
-    let service = AuthServer::new(users_api);
+    let auth_v1_service = AuthServer::new(users_api).send_compressed(CompressionEncoding::Gzip);
+    let users_v1_service = UsersV1Server::new(UsersApiV1 {});
     let layer = tower::ServiceBuilder::new()
         .layer(app_data_middleware)
         .into_inner();
-    let dummy_service = PermissionsServer::new(PermissionsApi {});
 
     tracing::event!(tracing::Level::INFO, "Users app is ready!");
 
     Server::builder()
         .accept_http1(true)
-        .layer(cors)
+        .layer(cors_layer)
         .layer(GrpcWebLayer::new())
         .layer(layer)
-        .add_service(service)
-        .add_service(dummy_service)
+        .add_service(auth_v1_service)
+        .add_service(users_v1_service)
         .serve(addr)
         .await?;
 
     Ok(())
 }
 
-fn chech_auth(req: Request<()>) -> Result<Request<()>, Status> {
-    match req.metadata().get("Authorization") {
-        Some(t) => {
-            let _token = t.to_str().map_err(|_| Status::unauthenticated(""))?;
+// fn chech_auth(req: Request<()>) -> Result<Request<()>, Status> {
+//     match req.metadata().get("Authorization") {
+//         Some(t) => {
+//             let _token = t.to_str().map_err(|_| Status::unauthenticated(""))?;
             
-            Ok(req)
-        }
-        None => Err(Status::unauthenticated("")),
-    }
-}
+//             Ok(req)
+//         }
+//         None => Err(Status::unauthenticated("")),
+//     }
+// }

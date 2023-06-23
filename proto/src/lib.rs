@@ -1,7 +1,12 @@
-pub mod users_proto {
+mod auth_proto {
     tonic::include_proto!("auth");
 }
 
+mod users_proto {
+    tonic::include_proto!("users");
+}
+
+pub use auth_proto::*;
 pub use users_proto::*;
 
 use leptos::{IntoView, View, Scope};

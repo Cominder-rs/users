@@ -1,0 +1,27 @@
+syntax = "proto3";
+import "google/protobuf/empty.proto";
+package users;
+
+service UsersV1 {
+  rpc GetUserById (UserId) returns (User) {}
+  rpc TestSize (google.protobuf.Empty) returns (TestUserWeight) {}
+}
+
+message TestUserWeight {
+  string firstname = 1;
+  string lastname = 2;
+  string city = 3;
+  int64 id = 4;
+  string about = 5;
+}
+
+message UserId {
+  int64 id = 1;
+}
+
+message User {
+  int64 id = 1;
+  string firstname = 2;
+  string lastname = 3;
+  string city = 4;
+}
